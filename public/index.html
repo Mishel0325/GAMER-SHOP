@@ -25,6 +25,9 @@
     </div>
   </header>
 
+  <!-- BARRA DE PROGRESO ANIMADA -->
+  <div id="progress-bar" class="fixed top-0 left-0 h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 transition-all duration-300 ease-out hidden w-0" style="z-index: 9999;"></div>
+
   <!-- ESPACIO SUPERIOR -->
   <div class="h-6"></div>
 
@@ -65,8 +68,8 @@
         </div>
         <div class="flex items-center gap-3">
           <div id="loading-indicator" class="hidden items-center gap-2 text-sm text-purple-600 font-semibold">
-            <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
-            <span>Cargando...</span>
+            <svg class="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+            <span>Cargando juegos...</span>
           </div>
 
           <div id="error-indicator" class="hidden text-sm text-red-600 font-semibold">⚠️ Error al cargar datos</div>

@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const loadMoreBtn = document.querySelector('#load-more');
   const loadingIndicator = document.querySelector('#loading-indicator');
   const errorIndicator = document.querySelector('#error-indicator');
+  const progressBar = document.querySelector('#progress-bar');
   const resultsCount = document.querySelector('#results-count');
   const modal = document.querySelector('#modal');
   const modalTitle = document.querySelector('#modal-title');
@@ -55,6 +56,34 @@ document.addEventListener('DOMContentLoaded', () => {
   function showLoading(show) {
     if (!loadingIndicator) return;
     loadingIndicator.classList.toggle('hidden', !show);
+    
+    // Animar barra de progreso
+    if (show) {
+      if (progressBar) {
+        progressBar.classList.remove('hidden');
+        progressBar.style.width = '10%';
+        // Animación gradual mientras carga
+        const interval = setInterval(() => {
+          const currentWidth = parseFloat(progressBar.style.width);
+          if (currentWidth < 90) {
+            progressBar.style.width = (currentWidth + Math.random() * 30) + '%';
+          }
+        }, 500);
+        // Guardar el interval en el elemento para poder limpiarlo después
+        progressBar._loadingInterval = interval;
+      }
+    } else {
+      // Completar la barra de progreso
+      if (progressBar && progressBar._loadingInterval) {
+        clearInterval(progressBar._loadingInterval);
+        progressBar.style.width = '100%';
+        // Ocultar después de la animación
+        setTimeout(() => {
+          progressBar.classList.add('hidden');
+          progressBar.style.width = '0%';
+        }, 500);
+      }
+    }
   }
 
   function showError(msg) {
