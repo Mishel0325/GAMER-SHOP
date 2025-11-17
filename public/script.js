@@ -45,9 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalSale = document.querySelector('#modal-sale');
   const modalLink = document.querySelector('#modal-link');
   const modalClose = document.querySelector('#modal-close');
-  const modalMoreGames = document.querySelector('#modal-more-games');
-  const gridMoreGames = document.querySelector('#grid-more-games');
-  const modalMoreClose = document.querySelector('#modal-more-close');
 
   if (!grid) {
     console.error('No se encontró el elemento con id "grid-videojuegos".');
@@ -335,10 +332,8 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log(`Cargando más de la tienda: ${storeID || 'Todas'}, página: ${pageNumber}`);
       const more = await fetchDeals({ storeID, pageNumber, pageSize });
       console.log(`Se encontraron ${more.length} juegos adicionales`);
-      // Limpiar grid del modal
-      gridMoreGames.innerHTML = '';
       
-      // Crear tarjetas para el modal
+      // Agregar juegos al grid principal
       more.forEach((deal) => {
         const juego = normalizeJuego(deal);
         const card = document.createElement('article');
@@ -362,12 +357,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (imgEl) imgEl.addEventListener('error', ()=>{ imgEl.src='https://via.placeholder.com/300x200?text=Imagen+no+disponible'; });
         const btn = card.querySelector('button');
         if (btn) btn.addEventListener('click', ()=>{ const title=decodeURIComponent(btn.dataset.title||''); modalTitle.textContent=title; modalImage.src=btn.dataset.image||''; modalNormal.textContent=btn.dataset.normal?('$'+btn.dataset.normal):'—'; modalSale.textContent=btn.dataset.sale?('$'+btn.dataset.sale):'—'; modalLink.href=btn.dataset.url||'#'; modal.classList.remove('hidden'); modal.classList.add('flex'); });
-        gridMoreGames.appendChild(card);
+        grid.appendChild(card);
       });
       
-      // Mostrar el modal con los nuevos juegos
-      modalMoreGames.classList.remove('hidden');
-      modalMoreGames.classList.add('flex');
+      // Actualizar contador de resultados
+      juegosActuales = juegosActuales.concat(more);
+      resultsCount.textContent = `${juegosActuales.length} resultados`;
+
     } catch (e) {
       showError('No se pudieron cargar más resultados.');
     } finally {
@@ -418,8 +414,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (loadMoreBtn) loadMoreBtn.addEventListener('click', cargarMas);
   if (modalClose) modalClose.addEventListener('click', ()=>{ modal.classList.add('hidden'); modal.classList.remove('flex'); });
   if (modal) modal.addEventListener('click',(e)=>{ if(e.target===modal){ modal.classList.add('hidden'); modal.classList.remove('flex'); }});
-  if (modalMoreClose) modalMoreClose.addEventListener('click', ()=>{ modalMoreGames.classList.add('hidden'); modalMoreGames.classList.remove('flex'); });
-  if (modalMoreGames) modalMoreGames.addEventListener('click',(e)=>{ if(e.target===modalMoreGames){ modalMoreGames.classList.add('hidden'); modalMoreGames.classList.remove('flex'); }});
 
   // Inicializar: render local mínimo y luego intentar cargar desde API
   // Mantengo tu render original como fallback
