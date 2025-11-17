@@ -109,84 +109,99 @@ document.addEventListener('DOMContentLoaded', () => {
     return { id, title, image, description, salePrice, normalPrice, savings, url };
   }
 
+  // Función auxiliar para crear una tarjeta de juego
+  function crearCard(juego) {
+    const card = document.createElement('article');
+    card.className = 'bg-white rounded-xl shadow-sm overflow-hidden border border-slate-100 flex flex-col hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer';
+    card.innerHTML = `
+      <div class="relative overflow-hidden h-40">
+        <img src="${juego.image}" alt="${juego.title}" class="h-40 w-full object-cover hover:scale-110 transition-transform duration-300" loading="lazy" />
+        <div class="absolute top-2 right-2 bg-gradient-to-r from-pink-500 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold">${Math.round(juego.savings)}% OFF</div>
+      </div>
+      <div class="p-4 flex flex-col gap-2 flex-1">
+        <h3 class="font-bold text-slate-900 leading-tight text-sm">${juego.title}</h3>
+        <p class="text-xs text-slate-500">${juego.description}</p>
+        <div class="mt-auto space-y-2">
+          <p class="text-sm text-slate-700"><span class="font-black text-emerald-600">${juego.salePrice ? '$' + juego.salePrice : '—'}</span></p>
+          ${juego.normalPrice ? `<p class="text-xs text-slate-400 line-through">$${juego.normalPrice}</p>` : ''}
+        </div>
+        <button class="mt-3 w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 rounded-lg text-xs font-bold hover:shadow-lg transition transform hover:scale-105" data-url="${juego.url}" data-title="${encodeURIComponent(juego.title)}" data-image="${juego.image}" data-normal="${juego.normalPrice}" data-sale="${juego.salePrice}">🎮 Ver detalle</button>
+      </div>
+    `;
+
+    const imgEl = card.querySelector('img');
+    if (imgEl) {
+      imgEl.addEventListener('error', () => {
+        imgEl.src = 'https://via.placeholder.com/300x200?text=Imagen+no+disponible';
+        imgEl.alt = 'Imagen no disponible';
+      });
+    }
+
+    const btn = card.querySelector('button');
+    if (btn) {
+      btn.addEventListener('click', () => {
+        const title = decodeURIComponent(btn.dataset.title || '');
+        const image = btn.dataset.image;
+        const normal = btn.dataset.normal;
+        const sale = btn.dataset.sale;
+        const url = btn.dataset.url;
+
+        modalTitle.textContent = title;
+        modalImage.src = image || 'https://via.placeholder.com/600x400?text=No+image';
+        modalDesc.textContent = '';
+        modalNormal.textContent = normal ? '$' + normal : '—';
+        modalSale.textContent = sale ? '$' + sale : '—';
+        modalLink.href = url || '#';
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      });
+    }
+
+    return card;
+  }
+
   function renderizarVideojuegos(lista) {
     // Limpia el grid antes de renderizar (evita duplicados)
+    console.log('🧹 [Renderizar] Limpiando grid...');
     grid.innerHTML = '';
 
     if (!lista || !lista.length) {
-      resultsCount.textContent = 'No hay resultados';
+      resultsCount.textContent = '0 resultados';
+      console.warn('⚠️ [Renderizar] Lista vacía');
       return;
     }
 
-    // Guardar juegos actuales para poder ordenar despues
+    // Guardar juegos actuales para poder ordenar después
     juegosActuales = lista.slice();
     
     resultsCount.textContent = `${lista.length} resultados`;
 
     lista.forEach((j) => {
       const juego = normalizeJuego(j);
-
-      const card = document.createElement('article');
-      card.className = 'bg-white rounded-xl shadow-sm overflow-hidden border border-slate-100 flex flex-col hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer';
-
-      card.innerHTML = `
-        <div class="relative overflow-hidden h-40">
-          <img src="${juego.image}" alt="${juego.title}" class="h-40 w-full object-cover hover:scale-110 transition-transform duration-300" loading="lazy" />
-          <div class="absolute top-2 right-2 bg-gradient-to-r from-pink-500 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold">${Math.round(juego.savings)}% OFF</div>
-        </div>
-        <div class="p-4 flex flex-col gap-2 flex-1">
-          <h3 class="font-bold text-slate-900 leading-tight text-sm">${juego.title}</h3>
-          <p class="text-xs text-slate-500">${juego.description}</p>
-          <div class="mt-auto space-y-2">
-            <p class="text-sm text-slate-700"><span class="font-black text-emerald-600">${juego.salePrice ? '$' + juego.salePrice : '—'}</span></p>
-            ${juego.normalPrice ? `<p class="text-xs text-slate-400 line-through">$${juego.normalPrice}</p>` : ''}
-          </div>
-          <button class="mt-3 w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 rounded-lg text-xs font-bold hover:shadow-lg transition transform hover:scale-105" data-url="${juego.url}" data-title="${encodeURIComponent(juego.title)}" data-image="${juego.image}" data-normal="${juego.normalPrice}" data-sale="${juego.salePrice}">🎮 Ver detalle</button>
-        </div>
-      `;
-
-      const imgEl = card.querySelector('img');
-      if (imgEl) {
-        imgEl.addEventListener('error', () => {
-          imgEl.src = 'https://via.placeholder.com/300x200?text=Imagen+no+disponible';
-          imgEl.alt = 'Imagen no disponible';
-        });
-      }
-
-      const btn = card.querySelector('button');
-      if (btn) {
-        btn.addEventListener('click', () => {
-          // abrir modal con datos
-          const title = decodeURIComponent(btn.dataset.title || '');
-          const image = btn.dataset.image;
-          const normal = btn.dataset.normal;
-          const sale = btn.dataset.sale;
-          const url = btn.dataset.url;
-
-          modalTitle.textContent = title;
-          modalImage.src = image || 'https://via.placeholder.com/600x400?text=No+image';
-          modalDesc.textContent = '';
-          modalNormal.textContent = normal ? '$' + normal : '—';
-          modalSale.textContent = sale ? '$' + sale : '—';
-          modalLink.href = url || '#';
-
-          modal.classList.remove('hidden');
-          modal.classList.add('flex');
-        });
-      }
-
+      const card = crearCard(juego);
       grid.appendChild(card);
     });
+
+    console.log(`✅ [Renderizar] ${lista.length} juegos renderizados sin duplicados`);
   }
 
   // API helpers
   async function fetchStores() {
     try {
       const res = await fetch(`${API_BASE}/stores`);
-      if (!res.ok) throw new Error('Stores fetch failed');
-      return await res.json();
+      if (!res.ok) {
+        throw new Error(`Error al cargar tiendas: ${res.status} ${res.statusText}`);
+      }
+      const data = await res.json();
+      if (!Array.isArray(data)) {
+        throw new Error('Respuesta de tiendas inválida');
+      }
+      console.log(`✓ Tiendas cargadas: ${data.length}`);
+      return data;
     } catch (e) {
-      console.error(e);
+      console.error('❌ Error en fetchStores:', e.message);
+      showError(`No se pudieron cargar las tiendas: ${e.message}`);
       return [];
     }
   }
@@ -199,26 +214,44 @@ document.addEventListener('DOMContentLoaded', () => {
       if (pageNumber) params.set('pageNumber', pageNumber);
       if (title) params.set('title', title);
       const url = `${API_BASE}/deals?${params.toString()}`;
+      
       const res = await fetch(url);
-      if (!res.ok) throw new Error(`deals fetch ${res.status}`);
-      return await res.json();
+      if (!res.ok) {
+        throw new Error(`Error al cargar ofertas: ${res.status} ${res.statusText}`);
+      }
+      const data = await res.json();
+      if (!Array.isArray(data)) {
+        throw new Error('Respuesta de ofertas inválida');
+      }
+      console.log(`✓ Ofertas cargadas: ${data.length} (página ${pageNumber})`);
+      return data;
     } catch (e) {
-      console.error(e);
+      console.error('❌ Error en fetchDeals:', e.message);
       throw e;
     }
   }
 
   async function fetchGamesByTitle(title) {
     try {
+      if (!title || title.trim() === '') {
+        throw new Error('Ingresa un término de búsqueda');
+      }
       const params = new URLSearchParams();
       params.set('title', title);
       params.set('limit', 20);
       const res = await fetch(`${API_BASE}/games?${params.toString()}`);
-      if (!res.ok) throw new Error('games fetch failed');
-      return await res.json();
+      if (!res.ok) {
+        throw new Error(`Error en búsqueda: ${res.status} ${res.statusText}`);
+      }
+      const data = await res.json();
+      if (!Array.isArray(data)) {
+        throw new Error('Respuesta de búsqueda inválida');
+      }
+      console.log(`✓ Búsqueda completada: ${data.length} juegos encontrados`);
+      return data;
     } catch (e) {
-      console.error(e);
-      return [];
+      console.error('❌ Error en fetchGamesByTitle:', e.message);
+      throw e;
     }
   }
 
@@ -230,6 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Cargar tiendas y poblar el selector
   async function cargarTiendas() {
     try {
+      console.log('📥 Iniciando carga de tiendas...');
       const stores = await fetchStores();
       if (stores && stores.length) {
         // Limpiar opciones previas excepto "Todas las tiendas"
@@ -245,10 +279,16 @@ document.addEventListener('DOMContentLoaded', () => {
           opt.textContent = store.storeName;
           storeSelect.appendChild(opt);
         });
-        console.log(`Tiendas cargadas: ${stores.length}`);
+        console.log(`✓ ${stores.length} tiendas cargadas exitosamente`);
+        return true;
+      } else {
+        console.warn('⚠️ No se cargaron tiendas, usando solo opción "Todas las tiendas"');
+        return false;
       }
     } catch (e) {
-      console.error('Error al cargar tiendas:', e);
+      console.error('❌ Error al cargar tiendas:', e.message);
+      showError(`Error cargando tiendas: ${e.message}`);
+      return false;
     }
   }
 
@@ -257,28 +297,35 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       showError('');
       showLoading(true);
+      console.log('🚀 Iniciando carga inicial de juegos...');
 
       // Cargar tiendas en paralelo
-      await cargarTiendas();
+      const tiendasCargadas = await cargarTiendas();
 
       // Cargar deals iniciales (Steam = storeID 1)
-      const url = `${API_BASE}/deals?storeID=1&pageSize=${pageSize}&pageNumber=0`;
-      console.log('Cargando ofertas iniciales desde Steam...');
-      const resp = await fetch(url);
-      if (!resp.ok) throw new Error('API deals no disponible');
-      const datos = await resp.json();
+      console.log('📥 Solicitando ofertas iniciales desde Steam (CheapShark API)...');
+      const datos = await fetchDeals({ storeID: 1, pageSize, pageNumber: 0 });
 
-      console.log(`Se cargaron ${datos.length} juegos desde Steam`);
-      window._juegosCache = datos;
-      renderizarVideojuegos(datos);
-    } catch (e) {
-      console.error('Error al cargar los videojuegos desde la API.', e);
-      // fallback: usa el array local `videojuegos` si existe
-      if (typeof videojuegos !== 'undefined' && Array.isArray(videojuegos)) {
-        console.log('Usando juegos locales como fallback');
-        renderizarVideojuegos(videojuegos);
+      if (datos && datos.length > 0) {
+        console.log(`✓ ${datos.length} juegos cargados exitosamente desde la API`);
+        window._juegosCache = datos;
+        renderizarVideojuegos(datos);
+        showError(''); // Limpiar cualquier error previo
       } else {
-        showError('No se pudieron cargar los juegos.');
+        throw new Error('La API devolvió resultados vacíos');
+      }
+    } catch (e) {
+      console.error('❌ Error al cargar desde API:', e.message);
+      console.log('⚠️ Usando juegos locales como fallback...');
+      
+      // fallback: usa el array local `videojuegos` si existe
+      if (typeof videojuegos !== 'undefined' && Array.isArray(videojuegos) && videojuegos.length > 0) {
+        console.log(`✓ ${videojuegos.length} juegos locales cargados como fallback`);
+        renderizarVideojuegos(videojuegos);
+        showError(`⚠️ API no disponible. Mostrando ${videojuegos.length} juegos locales (algunos datos podrían no ser actuales)`);
+      } else {
+        console.error('❌ No hay datos disponibles (ni API ni datos locales)');
+        showError(`❌ Error: No se pudieron cargar los juegos. ${e.message}`);
       }
     } finally {
       showLoading(false);
@@ -288,16 +335,31 @@ document.addEventListener('DOMContentLoaded', () => {
   // Búsqueda usando /games?title=texto&limit=20 y luego obtener deals por title
   async function buscarPorTitulo(text) {
     try {
+      if (!text || text.trim() === '') {
+        showError('Por favor ingresa un término de búsqueda');
+        return;
+      }
+      
       showError('');
       showLoading(true);
       pageNumber = 0;
-      const games = await fetchGamesByTitle(text);
-      // games puede ser lista con gameID y external, pero CheapShark permite buscar deals por title,
-      // así que llamamos a /deals?title=
+      
+      console.log(`🔍 Buscando: "${text}"`);
       const deals = await fetchDeals({ title: text, storeID: storeSelect.value, pageSize, pageNumber });
-      renderizarVideojuegos(deals);
+      
+      if (deals && deals.length > 0) {
+        console.log(`✓ Búsqueda exitosa: ${deals.length} resultados`);
+        renderizarVideojuegos(deals);
+        showError('');
+      } else {
+        console.warn('⚠️ No se encontraron resultados');
+        showError(`No se encontraron juegos para "${text}". Intenta con otro término.`);
+        grid.innerHTML = '';
+        resultsCount.textContent = 'Sin resultados';
+      }
     } catch (e) {
-      showError('Error en la búsqueda');
+      console.error('❌ Error en búsqueda:', e.message);
+      showError(`❌ Error en la búsqueda: ${e.message}`);
     } finally {
       showLoading(false);
     }
@@ -310,13 +372,24 @@ document.addEventListener('DOMContentLoaded', () => {
       showLoading(true);
       pageNumber = 0;
       const storeID = storeSelect.value || '';
-      console.log(`Filtrando por tienda: ${storeID || 'Todas las tiendas'}`);
+      const storeName = storeSelect.options[storeSelect.selectedIndex].text;
+      console.log(`🏪 Filtrando por: ${storeName || 'Todas las tiendas'}`);
+      
       const deals = await fetchDeals({ storeID, pageSize, pageNumber });
-      console.log(`Se encontraron ${deals.length} juegos`);
-      renderizarVideojuegos(deals);
+      
+      if (deals && deals.length > 0) {
+        console.log(`✓ Se encontraron ${deals.length} juegos en ${storeName}`);
+        renderizarVideojuegos(deals);
+        showError('');
+      } else {
+        console.warn(`⚠️ No hay juegos disponibles en ${storeName}`);
+        showError(`No hay juegos disponibles en ${storeName}`);
+        grid.innerHTML = '';
+        resultsCount.textContent = 'Sin resultados';
+      }
     } catch (e) {
-      console.error('Error al filtrar por tienda:', e);
-      showError('Error al filtrar por tienda');
+      console.error('❌ Error al filtrar por tienda:', e.message);
+      showError(`Error al filtrar: ${e.message}`);
     } finally {
       showLoading(false);
     }
@@ -329,43 +402,34 @@ document.addEventListener('DOMContentLoaded', () => {
       showLoading(true);
       pageNumber += 1;
       const storeID = storeSelect.value || '';
-      console.log(`Cargando más de la tienda: ${storeID || 'Todas'}, página: ${pageNumber}`);
+      console.log(`⬇️ Cargando página ${pageNumber}...`);
+      
       const more = await fetchDeals({ storeID, pageNumber, pageSize });
-      console.log(`Se encontraron ${more.length} juegos adicionales`);
       
-      // Agregar juegos al grid principal
-      more.forEach((deal) => {
-        const juego = normalizeJuego(deal);
-        const card = document.createElement('article');
-        card.className = 'bg-white rounded-xl shadow-sm overflow-hidden border border-slate-100 flex flex-col hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer';
-        card.innerHTML = `
-          <div class="relative overflow-hidden h-40">
-            <img src="${juego.image}" alt="${juego.title}" class="h-40 w-full object-cover hover:scale-110 transition-transform duration-300" loading="lazy" />
-            <div class="absolute top-2 right-2 bg-gradient-to-r from-pink-500 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold">${Math.round(juego.savings)}% OFF</div>
-          </div>
-          <div class="p-4 flex flex-col gap-2 flex-1">
-            <h3 class="font-bold text-slate-900 leading-tight text-sm">${juego.title}</h3>
-            <p class="text-xs text-slate-500">${juego.description}</p>
-            <div class="mt-auto space-y-2">
-              <p class="text-sm text-slate-700"><span class="font-black text-emerald-600">${juego.salePrice ? '$'+juego.salePrice : '—'}</span></p>
-              ${juego.normalPrice ? `<p class="text-xs text-slate-400 line-through">$${juego.normalPrice}</p>` : ''}
-            </div>
-            <button class="mt-3 w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 rounded-lg text-xs font-bold hover:shadow-lg transition transform hover:scale-105" data-url="${juego.url}" data-title="${encodeURIComponent(juego.title)}" data-image="${juego.image}" data-normal="${juego.normalPrice}" data-sale="${juego.salePrice}">🎮 Ver detalle</button>
-          </div>
-        `;
-        const imgEl = card.querySelector('img');
-        if (imgEl) imgEl.addEventListener('error', ()=>{ imgEl.src='https://via.placeholder.com/300x200?text=Imagen+no+disponible'; });
-        const btn = card.querySelector('button');
-        if (btn) btn.addEventListener('click', ()=>{ const title=decodeURIComponent(btn.dataset.title||''); modalTitle.textContent=title; modalImage.src=btn.dataset.image||''; modalNormal.textContent=btn.dataset.normal?('$'+btn.dataset.normal):'—'; modalSale.textContent=btn.dataset.sale?('$'+btn.dataset.sale):'—'; modalLink.href=btn.dataset.url||'#'; modal.classList.remove('hidden'); modal.classList.add('flex'); });
-        grid.appendChild(card);
-      });
-      
-      // Actualizar contador de resultados
-      juegosActuales = juegosActuales.concat(more);
-      resultsCount.textContent = `${juegosActuales.length} resultados`;
-
+      if (more && more.length > 0) {
+        console.log(`✓ ${more.length} juegos cargados (página ${pageNumber})`);
+        showError('');
+        
+        // Agregar juegos al estado y al grid (sin duplicados)
+        more.forEach((deal) => {
+          const juego = normalizeJuego(deal);
+          const card = crearCard(juego);
+          grid.appendChild(card);
+        });
+        
+        // Actualizar estado y contador
+        juegosActuales = juegosActuales.concat(more.map(normalizeJuego));
+        resultsCount.textContent = `${juegosActuales.length} resultados`;
+        console.log(`✅ Total de juegos en pantalla: ${juegosActuales.length}`);
+      } else {
+        console.warn('⚠️ No hay más juegos disponibles');
+        showError('No hay más juegos disponibles');
+        pageNumber -= 1; // Revertir incremento si no hay más resultados
+      }
     } catch (e) {
-      showError('No se pudieron cargar más resultados.');
+      console.error('❌ Error al cargar más resultados:', e.message);
+      showError(`Error cargando más: ${e.message}`);
+      pageNumber -= 1; // Revertir incremento en caso de error
     } finally {
       showLoading(false);
     }
