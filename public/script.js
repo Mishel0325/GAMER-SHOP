@@ -89,6 +89,9 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    // Guardar juegos actuales para poder ordenar despues
+    juegosActuales = lista.slice();
+    
     resultsCount.textContent = `${lista.length} resultados`;
 
     lista.forEach((j) => {
@@ -193,6 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // State
   let pageNumber = 0;
   const pageSize = 20;
+  let juegosActuales = []; // Guardar juegos actuales para poder ordenarlos
 
   // Cargar tiendas y poblar el selector
   async function cargarTiendas() {
@@ -332,10 +336,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Funcion para ordenar resultados
+  function ordenarResultados() {
+    const orden = sortSelect.value;
+    let juegosOrdenados = juegosActuales.slice(); // Copia sin modificar original
+
+    if (orden === 'precio_asc') {
+      // Ordenar por precio de venta ascendente
+      juegosOrdenados.sort((a, b) => {
+        const precioA = parseFloat(a.salePrice || a.sale || a.normalPrice || a.retail || 999);
+        const precioB = parseFloat(b.salePrice || b.sale || b.normalPrice || b.retail || 999);
+        return precioA - precioB;
+      });
+      console.log('Ordenado por precio ascendente');
+    } else if (orden === 'precio_desc') {
+      // Ordenar por precio de venta descendente
+      juegosOrdenados.sort((a, b) => {
+        const precioA = parseFloat(a.salePrice || a.sale || a.normalPrice || a.retail || 0);
+        const precioB = parseFloat(b.salePrice || b.sale || b.normalPrice || b.retail || 0);
+        return precioB - precioA;
+      });
+      console.log('Ordenado por precio descendente');
+    } else if (orden === 'descuento') {
+      // Ordenar por mayor descuento
+      juegosOrdenados.sort((a, b) => {
+        const descA = parseFloat(a.savings || a.descuento || 0);
+        const descB = parseFloat(b.savings || b.descuento || 0);
+        return descB - descA; // Mayor descuento primero
+      });
+      console.log('Ordenado por mayor descuento');
+    }
+    // Si no hay orden especifica, mantener orden por defecto
+
+    renderizarVideojuegos(juegosOrdenados);
+  }
+
   // Eventos UI
   if (searchBtn) searchBtn.addEventListener('click', ()=>{ const q = searchInput.value.trim(); if(q) buscarPorTitulo(q); });
   if (searchInput) searchInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ const q=searchInput.value.trim(); if(q) buscarPorTitulo(q); }});
   if (storeSelect) storeSelect.addEventListener('change', filtrarPorTienda);
+  if (sortSelect) sortSelect.addEventListener('change', ordenarResultados);
   if (loadMoreBtn) loadMoreBtn.addEventListener('click', cargarMas);
   if (modalClose) modalClose.addEventListener('click', ()=>{ modal.classList.add('hidden'); modal.classList.remove('flex'); });
   if (modal) modal.addEventListener('click',(e)=>{ if(e.target===modal){ modal.classList.add('hidden'); modal.classList.remove('flex'); }});
